@@ -1,0 +1,151 @@
+--Made netless by ShownApe#1111 on discord
+--This is R6 only as R15 accessories use meshparts for handles by default now
+--Released in https://discord.gg/Hbq3TgAJbB
+--Join my server for other releases that arent vr scripts if you'd like https://discord.gg/aTB76RAHct
+local options = {}
+
+
+local plr = game:GetService("Players").LocalPlayer
+local char = plr.Character
+--local backpack = plr.Backpack
+
+local VR = game:GetService("VRService")
+local input = game:GetService("UserInputService")
+
+local cam = workspace.CurrentCamera
+
+cam.CameraType = "Scriptable"
+
+cam.HeadScale = options.headscale
+
+game:GetService("StarterGui"):SetCore("VRLaserPointerMode", 0)
+game:GetService("StarterGui"):SetCore("VREnableControllerModels", false)
+
+
+local function createpart(size, name)
+	local Part = Instance.new("Part", char)
+	Part.CFrame = char.HumanoidRootPart.CFrame
+	Part.Size = size
+	Part.Transparency = 1
+	Part.CanCollide = true
+	Part.Anchored = true
+	Part.Name = name
+	return Part
+end
+
+local moveHandL = createpart(Vector3.new(1,1,2), "moveRH")
+local moveHandR = createpart(Vector3.new(1,1,2), "moveLH")
+local moveHead = createpart(Vector3.new(1,1,1), "moveH")
+
+local handL
+local handR
+local head
+local R1down = false
+
+for i,v in pairs(char.Humanoid:GetAccessories()) do
+	if v:FindFirstChild("Handle") then
+		local handle = v.Handle
+		
+		if v.Name == options.righthandhat and not handR then
+			handle:FindFirstChildOfClass("SpecialMesh"):Destroy()
+			handR = v
+		elseif v.Name == options.lefthandhat and not handL then
+			handle:FindFirstChildOfClass("SpecialMesh"):Destroy()
+			handL = v
+		elseif v.Name == options.headhat and not head then
+			handle.Transparency = 1
+			head = v
+		end
+	end
+end
+
+char.Humanoid.AnimationPlayed:connect(function(anim)
+	anim:Stop()
+end)
+
+for i,v in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
+	v:AdjustSpeed(0)
+end
+
+local torso = char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+torso.Anchored = true
+char.HumanoidRootPart.Anchored = true
+
+
+
+workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position)
+
+input.UserCFrameChanged:connect(function(part,move)
+	if part == Enum.UserCFrame.Head then
+		--move(head,cam.CFrame*move)
+		moveHead.CFrame = cam.CFrame*(CFrame.new(move.p*(cam.HeadScale-1))*move)
+	elseif part == Enum.UserCFrame.LeftHand then
+		--move(handL,cam.CFrame*move)
+		moveHandL.CFrame = cam.CFrame*(CFrame.new(move.p*(cam.HeadScale-1))*move*CFrame.Angles(math.rad(options.righthandrotoffset.X),math.rad(options.righthandrotoffset.Y),math.rad(options.righthandrotoffset.Z)))
+	elseif part == Enum.UserCFrame.RightHand then
+		--move(handR,cam.CFrame*move)
+		moveHandR.CFrame = cam.CFrame*(CFrame.new(move.p*(cam.HeadScale-1))*move*CFrame.Angles(math.rad(options.righthandrotoffset.X),math.rad(options.righthandrotoffset.Y),math.rad(options.righthandrotoffset.Z)))
+	end
+end)
+
+head.Handle:BreakJoints()
+handR.Handle:BreakJoints()
+handL.Handle:BreakJoints()
+
+
+
+input.InputChanged:connect(function(key)
+	if key.KeyCode == Enum.KeyCode.ButtonR1 then
+		if key.Position.Z > 0.9 then
+			R1down = true
+		else
+			R1down = false
+		end
+	end
+end)
+
+input.InputBegan:connect(function(key)
+	if key.KeyCode == Enum.KeyCode.ButtonR1 then
+		R1down = true
+	end
+end)
+
+input.InputEnded:connect(function(key)
+	if key.KeyCode == Enum.KeyCode.ButtonR1 then
+		R1down = false
+	end
+end)
+
+game:GetService("RunService").RenderStepped:connect(function()
+	if R1down then
+		cam.CFrame = cam.CFrame:Lerp(cam.CoordinateFrame + (moveHandR.CFrame*CFrame.Angles(-math.rad(options.righthandrotoffset.X),-math.rad(options.righthandrotoffset.Y),math.rad(180-options.righthandrotoffset.X))).LookVector * cam.HeadScale/2, 0.5)
+	end
+end)
+
+local function bubble(plr,msg)
+	game:GetService("Chat"):Chat(plr.Character.Head,msg,Enum.ChatColor.White)
+end
+
+if options.forcebubblechat == true then
+	game.Players.PlayerAdded:connect(function(plr)
+		plr.Chatted:connect(function(msg)
+			game:GetService("Chat"):Chat(plr.Character.Head,msg,Enum.ChatColor.White)
+		end)
+	end)
+	
+	for i,v in pairs(game.Players:GetPlayers()) do
+		v.Chatted:connect(function(msg)
+			game:GetService("Chat"):Chat(v.Character.Head,msg,Enum.ChatColor.White)
+		end)
+	end
+end
+
+while true do
+    lefthand.Handle.Velocity = Vector3.new(20,0,20)
+    lefthand.Handle.CFrame = moveHandL.CFrame
+    righthand.Handle.Velocity = Vector3.new(20,0,20)
+    righthand.Handle.CFrame = moveHandR.CFrame
+    hathead.Handle.Velocity = Vector3.new(20,0,20)
+    hathead.Handle.CFrame = moveHead.CFrame
+    game:GetService("RunService").Heartbeat:wait()
+end
