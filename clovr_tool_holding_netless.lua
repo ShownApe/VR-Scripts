@@ -1738,7 +1738,7 @@ character.ChildAdded:Connect(function(v)
         fake:remove()
     end)
 end)
-game.Players.LocalPlayer.Character["Right Arm"].Touched:Connect(function(t)
+cRarm.Touched:Connect(function(t)
     if t:IsA("BasePart") and t.Parent.Parent == workspace and t.Parent:IsA("Tool") then
         game.Players.LocalPlayer.Character.Humanoid:EquipTool(t.Parent)
     end
