@@ -340,7 +340,9 @@ Script = function()
         coroutine.resume(NetworkAccess)
     end
     ]]
+    pcall(function()
     StarterGui:SetCore("VRLaserPointerMode", 3)
+    end)
     --[[
  Character Protection
 --]]
